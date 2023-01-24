@@ -1,32 +1,55 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.scss';
-import todosFromServer from './api/todos';
 
 import { Todo } from './types/Todo';
 import { TodoList } from './components/TodoList';
-import { getUser, TodoForm } from './components/TodoForm';
-
-const initialTodos: Todo[] = todosFromServer.map(todo => ({
-  ...todo,
-  user: getUser(todo.userId),
-}));
+import { TodoForm } from './components/TodoForm';
+import {
+  createTodo,
+  deleteTodoById,
+  getTodosByUserId,
+  getUserById,
+} from './api/apiClient';
+import { User } from './types/User';
 
 export const App: React.FC = () => {
-  const [todos, setTodos] = useState(initialTodos);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [user, setUser] = useState<User | null>(null);
 
-  const addTodo = (todoData: Omit<Todo, 'id'>) => {
-    const newTodo = {
-      ...todoData,
-      id: Math.max(...todos.map(todo => todo.id)) + 1,
-    };
+  useEffect(() => {
+    const userId = 4181;
 
-    setTodos(currentTodos => [...currentTodos, newTodo]);
+    getTodosByUserId(userId)
+      .then((todosFromServer) => setTodos(todosFromServer));
+
+    getUserById(userId)
+      .then((userFromServer) => setUser(userFromServer));
+  }, []);
+
+  const addTodo = async (todoData: Omit<Todo, 'id'>) => {
+    try {
+      const newTodo = await createTodo(todoData);
+
+      setTodos(currentTodos => [...currentTodos, newTodo]);
+    } catch (e) {
+      window.alert(String(e));
+    }
   };
 
-  const deleteTodo = (todoId: number) => {
-    setTodos(currentTodos => currentTodos.filter(
-      todo => todo.id !== todoId,
-    ));
+  const deleteTodo = async (todoId: number) => {
+    try {
+      const responseResult = await deleteTodoById(todoId);
+
+      setTodos(currentTodos => currentTodos.filter(
+        todo => todo.id !== todoId,
+      ));
+
+      return responseResult;
+    } catch (e) {
+      window.alert(String(e));
+
+      return false;
+    }
   };
 
   const updateTodo = (updatedTodo: Todo) => {
@@ -38,9 +61,10 @@ export const App: React.FC = () => {
   return (
     <div className="App">
       <h1>Add todo form</h1>
-      <TodoForm onSubmit={addTodo} />
+      <TodoForm onSubmit={addTodo} user={user} />
       <TodoList
         todos={todos}
+        user={user}
         onTodoDelete={deleteTodo}
         onTodoUpdate={updateTodo}
       />

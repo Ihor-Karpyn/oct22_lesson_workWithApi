@@ -12,11 +12,12 @@ export function getUser(userId: number): User | null {
 type Props = {
   todo?: Todo;
   onSubmit: (todo: Omit<Todo, 'id'>) => void;
+  user: User | null
 };
 
-export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
+export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
   const [title, setTitle] = useState(todo?.title || '');
-  const [userId, setUserId] = useState(todo?.userId || 0);
+  const [userId, setUserId] = useState(0);
   const [completed, setCompleted] = useState(todo?.completed || false);
 
   const [hasTitleError, setTitleError] = useState(false);
@@ -32,10 +33,8 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
       return;
     }
 
-    const user = getUser(userId);
-
     onSubmit({
-      title, userId, completed, user,
+      title, userId, completed,
     });
 
     setCompleted(false);
@@ -44,7 +43,7 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
   };
 
   return (
-    <form action="/api/users" method="POST" onSubmit={handleSubmit}>
+    <form onSubmit={handleSubmit}>
       <div className="field">
         <label>
           {'Title: '}
@@ -76,13 +75,8 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo }) => {
               setUserError(false);
             }}
           >
-            <option value="0" disabled>Choose a user</option>
-
-            {usersFromServer.map(user => (
-              <option key={user.id} value={user.id}>
-                {user.name}
-              </option>
-            ))}
+            <option value={0} disabled>chose user</option>
+            <option value={user?.id}>{user?.name}</option>
           </select>
         </label>
 
