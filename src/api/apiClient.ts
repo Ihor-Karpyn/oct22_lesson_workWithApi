@@ -6,6 +6,7 @@ const ENDPOINTS = {
   todosByUserId: '/todos?userId=',
   userById: '/users/',
   deleteTodoById: '/todos/',
+  updateTodoById: '/todos/',
   createTodo: '/todos',
 };
 
@@ -40,6 +41,28 @@ const post = <T>(endpoint: string, body: string): Promise<T> => {
 
   return fetch(requestUrl, requestInit)
     .then(response => response.json());
+};
+
+const patch = <T>(endpoint: string, body: string): Promise<T> => {
+  const requestUrl = `${BASE_URL}${endpoint}`;
+
+  const requestInit: RequestInit = {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body,
+  };
+
+  return fetch(requestUrl, requestInit)
+    .then(response => response.json());
+};
+
+export const updateTodo = (id: number, fieldsToUpdate: Partial<Todo>) => {
+  const body = JSON.stringify(fieldsToUpdate);
+  const requestEndpoint = `${ENDPOINTS.updateTodoById}${id}`;
+
+  return patch<Todo>(requestEndpoint, body);
 };
 
 export const getTodosByUserId = (userId: number): Promise<Todo[]> => {

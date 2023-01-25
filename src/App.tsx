@@ -9,6 +9,7 @@ import {
   deleteTodoById,
   getTodosByUserId,
   getUserById,
+  updateTodo as updateTodoOnServer,
 } from './api/apiClient';
 import { User } from './types/User';
 
@@ -52,10 +53,23 @@ export const App: React.FC = () => {
     }
   };
 
-  const updateTodo = (updatedTodo: Todo) => {
-    setTodos(currentTodos => currentTodos.map(
-      todo => (todo.id === updatedTodo.id ? updatedTodo : todo),
-    ));
+  const updateTodo = async (todoToUpdate: Todo) => {
+    try {
+      const {
+        id,
+        ...fieldsToUpdate
+      } = todoToUpdate;
+
+      const updatedTodo = await updateTodoOnServer(id, fieldsToUpdate);
+
+      setTodos((currentTodos) => currentTodos.map(todo => (
+        todo.id === updatedTodo.id
+          ? updatedTodo
+          : todo
+      )));
+    } catch (e) {
+      window.alert(String(e));
+    }
   };
 
   return (

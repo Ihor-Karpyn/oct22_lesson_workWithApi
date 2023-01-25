@@ -11,7 +11,7 @@ export function getUser(userId: number): User | null {
 
 type Props = {
   todo?: Todo;
-  onSubmit: (todo: Omit<Todo, 'id'>) => void;
+  onSubmit: (todo: Omit<Todo, 'id'>) => Promise<any>;
   user: User | null
 };
 
@@ -19,27 +19,40 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
   const [title, setTitle] = useState(todo?.title || '');
   const [userId, setUserId] = useState(0);
   const [completed, setCompleted] = useState(todo?.completed || false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const [hasTitleError, setTitleError] = useState(false);
   const [hasUserError, setUserError] = useState(false);
 
-  const handleSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
+  const clearForm = () => {
+    setCompleted(false);
+    setTitle('');
+    setUserId(0);
+  };
 
+  const reviewFormOnError = () => {
     setTitleError(!title);
     setUserError(!userId);
+  };
+
+  const handleSubmit = async (event: React.FormEvent) => {
+    event.preventDefault();
+
+    reviewFormOnError();
 
     if (!title || !userId) {
       return;
     }
 
-    onSubmit({
+    setIsLoading(true);
+
+    await onSubmit({
       title, userId, completed,
     });
 
-    setCompleted(false);
-    setTitle('');
-    setUserId(0);
+    setIsLoading(false);
+
+    clearForm();
   };
 
   return (
@@ -52,6 +65,7 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
             type="text"
             data-cy="titleInput"
             value={title}
+            disabled={isLoading}
             onChange={event => {
               setTitle(event.target.value);
               setTitleError(false);
@@ -70,6 +84,7 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
           <select
             data-cy="userSelect"
             value={userId}
+            disabled={isLoading}
             onChange={event => {
               setUserId(+event.target.value);
               setUserError(false);
@@ -89,6 +104,7 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
         <label>
           Done:
           <input
+            disabled={isLoading}
             type="checkbox"
             checked={completed}
             onChange={e => setCompleted(e.target.checked)}
@@ -96,7 +112,11 @@ export const TodoForm: React.FC<Props> = ({ onSubmit, todo, user }) => {
         </label>
       </div>
 
-      <button type="submit" data-cy="submitButton">
+      <button
+        type="submit"
+        data-cy="submitButton"
+        disabled={isLoading}
+      >
         Save
       </button>
     </form>

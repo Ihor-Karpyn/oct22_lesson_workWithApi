@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Todo } from '../../types/Todo';
 import { TodoForm } from '../TodoForm';
 import { UserInfo } from '../UserInfo';
@@ -34,6 +34,12 @@ export const TodoInfo: React.FC<Props> = ({
     setIsLoading(false);
   };
 
+  const onSubmitEditForm = useCallback(async (todoData) => {
+    await onUpdate({ id: todo.id, ...todoData });
+
+    setEditing(false);
+  }, []);
+
   return (
     <article
       data-id={todo.id}
@@ -44,10 +50,8 @@ export const TodoInfo: React.FC<Props> = ({
       {editing ? (
         <TodoForm
           todo={todo}
-          onSubmit={todoData => {
-            onUpdate({ id: todo.id, ...todoData });
-            setEditing(false);
-          }}
+          user={user}
+          onSubmit={onSubmitEditForm}
         />
       ) : (
         <>
