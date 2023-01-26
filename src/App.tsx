@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import './App.scss';
 
 import { Todo } from './types/Todo';
@@ -12,10 +12,15 @@ import {
   updateTodo as updateTodoOnServer,
 } from './api/apiClient';
 import { User } from './types/User';
+import { ErrorMessage } from './components/ErrorMessage/ErrorMessage';
+import { useErrorMessage } from './controllers/useErrorMessage';
 
 export const App: React.FC = () => {
   const [todos, setTodos] = useState<Todo[]>([]);
+  const [tempNewTodo, setTempNewTodo] = useState<Todo | null>(null);
   const [user, setUser] = useState<User | null>(null);
+  const [showError, closeError, errorMassages] = useErrorMessage();
+  const [processDeletingTodoIds, setProcessDeletingTodoIds] = useState<number[]>([]);
 
   useEffect(() => {
     const userId = 4181;
@@ -29,25 +34,39 @@ export const App: React.FC = () => {
 
   const addTodo = async (todoData: Omit<Todo, 'id'>) => {
     try {
+      const tempTodo = {
+        ...todoData,
+        id: 0,
+      };
+
+      setTempNewTodo(tempTodo);
+
       const newTodo = await createTodo(todoData);
 
       setTodos(currentTodos => [...currentTodos, newTodo]);
+      setTempNewTodo(null);
     } catch (e) {
-      window.alert(String(e));
+      showError('Smth went wrong on add todo');
+      setTempNewTodo(null);
     }
   };
 
   const deleteTodo = async (todoId: number) => {
     try {
+      setProcessDeletingTodoIds(prev => [...prev, todoId]);
+
       const responseResult = await deleteTodoById(todoId);
 
       setTodos(currentTodos => currentTodos.filter(
         todo => todo.id !== todoId,
       ));
 
+      setProcessDeletingTodoIds(prev => prev.filter(id => id !== todoId));
+
       return responseResult;
     } catch (e) {
-      window.alert(String(e));
+      setProcessDeletingTodoIds(prev => prev.filter(id => id !== todoId));
+      showError('Error while deliting todo');
 
       return false;
     }
@@ -78,10 +97,13 @@ export const App: React.FC = () => {
       <TodoForm onSubmit={addTodo} user={user} />
       <TodoList
         todos={todos}
+        tempNewTodo={tempNewTodo}
         user={user}
         onTodoDelete={deleteTodo}
         onTodoUpdate={updateTodo}
+        processDeletingTodoIds={processDeletingTodoIds}
       />
+      <ErrorMessage messages={errorMassages} close={closeError} />
     </div>
   );
 };

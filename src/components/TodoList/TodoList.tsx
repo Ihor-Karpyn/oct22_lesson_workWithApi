@@ -8,6 +8,8 @@ type Props = {
   onTodoDelete: (todoId: number) => Promise<boolean>;
   onTodoUpdate: (todo: Todo) => void;
   user: User | null;
+  tempNewTodo: Todo | null;
+  processDeletingTodoIds: number[];
 };
 
 export const TodoList: React.FC<Props> = ({
@@ -15,6 +17,8 @@ export const TodoList: React.FC<Props> = ({
   onTodoDelete,
   onTodoUpdate,
   user,
+  tempNewTodo,
+  processDeletingTodoIds,
 }) => (
   <section className="TodoList">
     {todos.map(todo => (
@@ -24,7 +28,18 @@ export const TodoList: React.FC<Props> = ({
         user={user}
         onDelete={onTodoDelete}
         onUpdate={onTodoUpdate}
+        processDeletingTodoIds={processDeletingTodoIds}
       />
     ))}
+
+    {tempNewTodo && (
+      <TodoInfo
+        todo={tempNewTodo}
+        onDelete={onTodoDelete}
+        onUpdate={onTodoUpdate}
+        user={user}
+        processDeletingTodoIds={processDeletingTodoIds}
+      />
+    )}
   </section>
 );

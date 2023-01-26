@@ -10,6 +10,7 @@ type Props = {
   onDelete: (todoId: number) => Promise<boolean>;
   onUpdate: (todo: Todo) => void;
   user: User | null;
+  processDeletingTodoIds: number[]
 };
 
 export const TodoInfo: React.FC<Props> = ({
@@ -17,13 +18,14 @@ export const TodoInfo: React.FC<Props> = ({
   onDelete,
   onUpdate,
   user,
+  processDeletingTodoIds,
 }) => {
   const [editing, setEditing] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isDeleteLoading, setIsDeleteLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
   const handleDeleteTodo = async () => {
-    setIsLoading(true);
+    setIsDeleteLoading(true);
 
     const isDeleted = await onDelete(todo.id);
 
@@ -31,7 +33,7 @@ export const TodoInfo: React.FC<Props> = ({
       setIsError(true);
     }
 
-    setIsLoading(false);
+    setIsDeleteLoading(false);
   };
 
   const onSubmitEditForm = useCallback(async (todoData) => {
@@ -39,6 +41,10 @@ export const TodoInfo: React.FC<Props> = ({
 
     setEditing(false);
   }, []);
+
+  const isLoading = isDeleteLoading
+    || todo.id === 0
+    || processDeletingTodoIds.includes(todo.id);
 
   return (
     <article
@@ -55,20 +61,34 @@ export const TodoInfo: React.FC<Props> = ({
         />
       ) : (
         <>
-          {isLoading && <h1>Loading</h1>}
           {isError && <h1>Error</h1>}
 
-          <h2 className="TodoInfo__title">{todo.title}</h2>
+          <h2 className="TodoInfo__title">
+            {todo.title}
+            {isLoading && (
+              <span style={{ color: 'black', marginLeft: '10px' }}>
+                Loading
+              </span>
+            )}
+          </h2>
 
           {user && (
             <UserInfo user={user} />
           )}
 
-          <button type="button" onClick={handleDeleteTodo}>
+          <button
+            type="button"
+            onClick={handleDeleteTodo}
+            disabled={isLoading}
+          >
             x
           </button>
 
-          <button type="button" onClick={() => setEditing(true)}>
+          <button
+            type="button"
+            onClick={() => setEditing(true)}
+            disabled={isLoading}
+          >
             edit
           </button>
         </>

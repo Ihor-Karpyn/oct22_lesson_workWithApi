@@ -1,3 +1,4 @@
+import { throws } from 'assert';
 import { Todo } from '../types/Todo';
 import { User } from '../types/User';
 
@@ -14,6 +15,13 @@ const get = <T>(endpoint: string): Promise<T> => {
   const requestUrl = `${BASE_URL}${endpoint}`;
 
   return fetch(requestUrl)
+    .then(response => {
+      if (response.ok) {
+        return response;
+      }
+
+      throw Error(response.statusText);
+    })
     .then(response => response.json());
 };
 
@@ -25,6 +33,13 @@ const deleteMethod = <T>(endpoint: string): Promise<T> => {
   };
 
   return fetch(requestUrl, requestInit)
+    .then(response => {
+      if (response.ok) {
+        return response;
+      }
+
+      throw Error(response.statusText);
+    })
     .then(response => response.json());
 };
 
@@ -40,6 +55,13 @@ const post = <T>(endpoint: string, body: string): Promise<T> => {
   };
 
   return fetch(requestUrl, requestInit)
+    .then(response => {
+      if (response.ok) {
+        return response;
+      }
+
+      throw Error(response.statusText);
+    })
     .then(response => response.json());
 };
 
@@ -55,6 +77,13 @@ const patch = <T>(endpoint: string, body: string): Promise<T> => {
   };
 
   return fetch(requestUrl, requestInit)
+    .then(response => {
+      if (response.ok) {
+        return response;
+      }
+
+      throw Error(response.statusText);
+    })
     .then(response => response.json());
 };
 
